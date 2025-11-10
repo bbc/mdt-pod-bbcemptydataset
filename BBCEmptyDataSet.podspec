@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name          = "BBCEmptyDataSet"
-  s.version       = "1.8.3"
+  s.version       = "1.8.4"
   s.summary       = "A drop-in UITableView/UICollectionView superclass category for showing empty datasets whenever the view has no content to display."
   s.description   = "It will work automatically, by just conforming to DZNEmptyDataSetSource, and returning the data you want to show. The -reloadData call will be observed so the empty dataset will be configured whenever needed."
   s.homepage      = "https://github.com/dzenbot/DZNEmptyDataSet"
