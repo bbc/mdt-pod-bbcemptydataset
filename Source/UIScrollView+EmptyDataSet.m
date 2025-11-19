@@ -927,9 +927,13 @@ Class dzn_baseClassToSwizzleForTarget(id target)
     [self addConstraint:centerXConstraint];
     [self addConstraint:centerYConstraint];
     
-    // Older visual format: [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[contentView]|" options:0 metrics:nil views:@{@"contentView": self.contentView}]];
-    [self addConstraint:[self.contentView.leadingAnchor constraintEqualToAnchor:self.contentView.superview.leadingAnchor]];
-    [self addConstraint:[self.contentView.trailingAnchor constraintEqualToAnchor:self.contentView.superview.trailingAnchor]];
+    // Older visual format: H:|[contentView]| and V:|[contentView]|
+    [NSLayoutConstraint activateConstraints:@[
+        [self.contentView.leadingAnchor constraintEqualToAnchor:self.leadingAnchor],
+        [self.contentView.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
+        [self.contentView.topAnchor constraintEqualToAnchor:self.topAnchor],
+        [self.contentView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor]
+    ]];
     
     // When a custom offset is available, we adjust the vertical constraints' constants
     if (self.verticalOffset != 0 && self.constraints.count > 0) {
@@ -939,13 +943,13 @@ Class dzn_baseClassToSwizzleForTarget(id target)
     // If applicable, set the custom view's constraints
     if (_customView) {
 
-        // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[customView]|" options:0 metrics:nil views:@{@"customView":_customView}]];
-        [self addConstraint:[_customView.leadingAnchor constraintEqualToAnchor:_customView.superview.safeAreaLayoutGuide.leadingAnchor]];
-        [self addConstraint:[_customView.trailingAnchor constraintEqualToAnchor:_customView.superview.safeAreaLayoutGuide.trailingAnchor]];
-        
-        // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[customView]|" options:0 metrics:nil views:@{@"customView":_customView}]];
-        [self addConstraint:[_customView.topAnchor constraintEqualToAnchor:_customView.superview.safeAreaLayoutGuide.topAnchor]];
-        [self addConstraint:[_customView.bottomAnchor constraintEqualToAnchor:_customView.superview.safeAreaLayoutGuide.bottomAnchor]];
+        // Older visual format: H:|[customView]| and V:|[customView]|
+        [NSLayoutConstraint activateConstraints:@[
+            [_customView.leadingAnchor constraintEqualToAnchor:self.contentView.leadingAnchor],
+            [_customView.trailingAnchor constraintEqualToAnchor:self.contentView.trailingAnchor],
+            [_customView.topAnchor constraintEqualToAnchor:self.contentView.topAnchor],
+            [_customView.bottomAnchor constraintEqualToAnchor:self.contentView.bottomAnchor]
+        ]];
     }
     else {
         CGFloat width = CGRectGetWidth(self.frame) ? : CGRectGetWidth([UIScreen mainScreen].bounds);
@@ -962,7 +966,7 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             views[[subviewStrings lastObject]] = _imageView;
             
             // Older visual format: [self.contentView addConstraint:[self.contentView equallyRelatedConstraintWithView:_imageView attribute:NSLayoutAttributeCenterX]];
-            [self.contentView addConstraint:[_imageView.centerXAnchor constraintEqualToAnchor:_imageView.superview.safeAreaLayoutGuide.centerXAnchor]];
+            [self.contentView addConstraint:[_imageView.centerXAnchor constraintEqualToAnchor:self.contentView.centerXAnchor]];
         }
         
         // Assign the title label's horizontal constraints
@@ -972,12 +976,12 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             views[[subviewStrings lastObject]] = _titleLabel;
             
             // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(padding@750)-[titleLabel(>=0)]-(padding@750)-|" options:0 metrics:metrics views:views]];
-            [self.contentView addConstraint:[_titleLabel.centerXAnchor constraintEqualToAnchor:_titleLabel.superview.safeAreaLayoutGuide.centerXAnchor]];
+            [self.contentView addConstraint:[_titleLabel.centerXAnchor constraintEqualToAnchor:self.contentView.centerXAnchor]];
             [self.contentView addConstraint:[_titleLabel.widthAnchor constraintGreaterThanOrEqualToConstant:0]];
-            NSLayoutConstraint *leftPadding = [_titleLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:_titleLabel.superview.safeAreaLayoutGuide.leadingAnchor constant:padding];
+            NSLayoutConstraint *leftPadding = [_titleLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:self.contentView.leadingAnchor constant:padding];
             [leftPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:leftPadding];
-            NSLayoutConstraint *rightPadding = [_titleLabel.trailingAnchor constraintLessThanOrEqualToAnchor:_titleLabel.superview.safeAreaLayoutGuide.trailingAnchor constant:-padding];
+            NSLayoutConstraint *rightPadding = [_titleLabel.trailingAnchor constraintLessThanOrEqualToAnchor:self.contentView.trailingAnchor constant:-padding];
             [rightPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:rightPadding];
             
@@ -995,12 +999,12 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             views[[subviewStrings lastObject]] = _detailLabel;
             
             // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(padding@750)-[detailLabel(>=0)]-(padding@750)-|" options:0 metrics:metrics views:views]];
-            [self.contentView addConstraint:[_detailLabel.centerXAnchor constraintEqualToAnchor:_detailLabel.superview.safeAreaLayoutGuide.centerXAnchor]];
+            [self.contentView addConstraint:[_detailLabel.centerXAnchor constraintEqualToAnchor:self.contentView.centerXAnchor]];
             [self.contentView addConstraint:[_detailLabel.widthAnchor constraintGreaterThanOrEqualToConstant:0]];
-            NSLayoutConstraint *leftPadding = [_detailLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:_detailLabel.superview.safeAreaLayoutGuide.leadingAnchor constant:padding];
+            NSLayoutConstraint *leftPadding = [_detailLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:self.contentView.leadingAnchor constant:padding];
             [leftPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:leftPadding];
-            NSLayoutConstraint *rightPadding = [_detailLabel.trailingAnchor constraintLessThanOrEqualToAnchor:_detailLabel.superview.safeAreaLayoutGuide.trailingAnchor constant:-padding];
+            NSLayoutConstraint *rightPadding = [_detailLabel.trailingAnchor constraintLessThanOrEqualToAnchor:self.contentView.trailingAnchor constant:-padding];
             [rightPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:rightPadding];
             
@@ -1018,12 +1022,12 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             views[[subviewStrings lastObject]] = _button;
             
             // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(padding@750)-[button(>=0)]-(padding@750)-|" options:0 metrics:metrics views:views]];
-            [self.contentView addConstraint:[_button.centerXAnchor constraintEqualToAnchor:_button.superview.safeAreaLayoutGuide.centerXAnchor]];
+            [self.contentView addConstraint:[_button.centerXAnchor constraintEqualToAnchor:self.contentView.centerXAnchor]];
             [self.contentView addConstraint:[_button.widthAnchor constraintGreaterThanOrEqualToConstant:0]];
-            NSLayoutConstraint *leftPadding = [_button.leadingAnchor constraintGreaterThanOrEqualToAnchor:_button.superview.safeAreaLayoutGuide.leadingAnchor constant:padding];
+            NSLayoutConstraint *leftPadding = [_button.leadingAnchor constraintGreaterThanOrEqualToAnchor:self.contentView.leadingAnchor constant:padding];
             [leftPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:leftPadding];
-            NSLayoutConstraint *rightPadding = [_button.trailingAnchor constraintLessThanOrEqualToAnchor:_button.superview.safeAreaLayoutGuide.trailingAnchor constant:-padding];
+            NSLayoutConstraint *rightPadding = [_button.trailingAnchor constraintLessThanOrEqualToAnchor:self.contentView.trailingAnchor constant:-padding];
             [rightPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:rightPadding];
             
@@ -1034,60 +1038,41 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             _button = nil;
         }
         
-        // Constrain the relevant views vertically on top of each other with margin between.
-        // Centre the whole lot with top and bottom spacers.
+        // Constrain the relevant views vertically with spacing and keep the stack centred.
         UIView *previousSubview = nil;
-        UIView *topSpacerView = nil;
-        UIView *bottomSpacerView = nil;
-        for (int i = 0; i < subviewStrings.count; i++) {
+        NSMutableArray<UIView *> *orderedSubviews = [NSMutableArray array];
+        for (NSString *subviewString in subviewStrings) {
+            UIView *subview = views[subviewString];
+            if (!subview) { continue; }
+            [orderedSubviews addObject:subview];
             
-            NSString *subviewString = subviewStrings[i];
-            UIView *subview = [views objectForKey:subviewString];
-            
-            // Create top spacer view and constrain first subview to it
-            if (i == 0) {
-                topSpacerView = [UIView new];
-                topSpacerView.hidden = YES;
-                [self.contentView addSubview:topSpacerView];
-                topSpacerView.translatesAutoresizingMaskIntoConstraints = NO;
-                [self.contentView addConstraint:[topSpacerView.topAnchor constraintEqualToAnchor:topSpacerView.superview.safeAreaLayoutGuide.topAnchor]];
-                [self.contentView addConstraint:[topSpacerView.centerXAnchor constraintEqualToAnchor:topSpacerView.superview.safeAreaLayoutGuide.centerXAnchor]];
-                [self.contentView addConstraint:[topSpacerView.widthAnchor constraintEqualToAnchor:topSpacerView.superview.safeAreaLayoutGuide.widthAnchor]];
-                NSLayoutConstraint *spacerHeight = [topSpacerView.heightAnchor constraintGreaterThanOrEqualToConstant:padding];
-                [spacerHeight setPriority:UILayoutPriorityDefaultLow];
-                [self.contentView addConstraint:spacerHeight];
-                [self.contentView addConstraint:[subview.topAnchor constraintEqualToAnchor:topSpacerView.bottomAnchor constant:0]];
+            if (previousSubview) {
+                NSLayoutConstraint *spacingConstraint = [subview.topAnchor constraintEqualToAnchor:previousSubview.bottomAnchor constant:verticalSpace];
+                spacingConstraint.priority = UILayoutPriorityDefaultHigh;
+                [self.contentView addConstraint:spacingConstraint];
             }
-            
-            // Or constrain subview to previous subview and leave margin between - default is 11 pts.
-            else if (previousSubview) {
-                NSLayoutConstraint *interviewSpace = [subview.topAnchor constraintEqualToAnchor:previousSubview.bottomAnchor constant:verticalSpace];
-                [interviewSpace setPriority:UILayoutPriorityDefaultHigh];
-                [self.contentView addConstraint:interviewSpace];
-            }
-            
-            // Create bottom spacer view and constrain last subview to it
-            if (i == subviewStrings.count-1) {
-  
-                bottomSpacerView = [UIView new];
-                bottomSpacerView.hidden = YES;
-                [self.contentView addSubview:bottomSpacerView];
-                bottomSpacerView.translatesAutoresizingMaskIntoConstraints = NO;
-                [self.contentView addConstraint:[bottomSpacerView.bottomAnchor constraintEqualToAnchor:bottomSpacerView.superview.safeAreaLayoutGuide.bottomAnchor]];
-                [self.contentView addConstraint:[bottomSpacerView.centerXAnchor constraintEqualToAnchor:bottomSpacerView.superview.safeAreaLayoutGuide.centerXAnchor]];
-                [self.contentView addConstraint:[bottomSpacerView.widthAnchor constraintEqualToAnchor:bottomSpacerView.superview.safeAreaLayoutGuide.widthAnchor]];
-                NSLayoutConstraint *spacerHeight = [bottomSpacerView.heightAnchor constraintGreaterThanOrEqualToConstant:padding];
-                [spacerHeight setPriority:UILayoutPriorityDefaultLow];
-                [self.contentView addConstraint:spacerHeight];
-                [self.contentView addConstraint:[subview.bottomAnchor constraintEqualToAnchor:bottomSpacerView.topAnchor constant:0]];
-                
-                // Give top and bottom spacers the same height
-                if (topSpacerView && bottomSpacerView) {
-                    [self.contentView addConstraint:[topSpacerView.heightAnchor constraintEqualToAnchor:bottomSpacerView.heightAnchor constant:0]];
-                }
-            }
-            
             previousSubview = subview;
+        }
+        
+        if (orderedSubviews.count > 0) {
+            UIView *firstSubview = orderedSubviews.firstObject;
+            UIView *lastSubview = orderedSubviews.lastObject;
+            
+            UILayoutGuide *stackGuide = [UILayoutGuide new];
+            [self.contentView addLayoutGuide:stackGuide];
+            
+            NSLayoutConstraint *topInset = [firstSubview.topAnchor constraintGreaterThanOrEqualToAnchor:self.contentView.topAnchor constant:padding];
+            topInset.priority = UILayoutPriorityDefaultHigh;
+            NSLayoutConstraint *bottomInset = [lastSubview.bottomAnchor constraintLessThanOrEqualToAnchor:self.contentView.bottomAnchor constant:-padding];
+            bottomInset.priority = UILayoutPriorityDefaultHigh;
+            
+            [NSLayoutConstraint activateConstraints:@[
+                [stackGuide.topAnchor constraintEqualToAnchor:firstSubview.topAnchor],
+                [stackGuide.bottomAnchor constraintEqualToAnchor:lastSubview.bottomAnchor],
+                [stackGuide.centerYAnchor constraintEqualToAnchor:self.contentView.centerYAnchor],
+                topInset,
+                bottomInset
+            ]];
         }
     }
 }
