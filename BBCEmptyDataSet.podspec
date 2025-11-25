@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.homepage      = "https://github.com/dzenbot/DZNEmptyDataSet"
   s.license       = { :type => 'MIT', :file => 'LICENSE' }
   s.author        = { "dzenbot" => "iromero@dzen.cl" }
-  s.ios.deployment_target   = '16.0'
+  s.ios.deployment_target   = '17.0'
   s.source        = { :git => "https://github.com/bbc/mdt-pod-bbcemptydataset.git", :tag => s.version.to_s }
   s.source_files  = 'Classes', 'Source/**/*.{h,m}'
   s.requires_arc  = true
