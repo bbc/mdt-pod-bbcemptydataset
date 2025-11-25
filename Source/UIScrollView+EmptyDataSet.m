@@ -15,6 +15,15 @@
 
 - (NSLayoutConstraint *)equallyRelatedConstraintWithView:(UIView *)view attribute:(NSLayoutAttribute)attribute;
 
+- (NSLayoutAnchor *)topAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea;
+- (NSLayoutAnchor *)bottomAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea;
+- (NSLayoutAnchor *)leadingAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea;
+- (NSLayoutAnchor *)trailingAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea;
+- (NSLayoutAnchor *)centerXAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea;
+- (NSLayoutAnchor *)centerYAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea;
+- (NSLayoutAnchor *)widthAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea;
+- (NSLayoutAnchor *)heightAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea;
+
 @end
 
 @interface DZNWeakObjectContainer : NSObject
@@ -40,7 +49,7 @@
 
 @property (nonatomic, assign) BOOL fadeInOnDisplay;
 
-- (void)setupConstraints;
+- (void)setupConstraintsAnchoringToSafeArea:(BOOL)anchorToSafeArea;
 - (void)prepareForReuse;
 
 @end
@@ -287,10 +296,20 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
 #pragma mark - Delegate Getters & Events (Private)
 
 - (BOOL)dzn_shouldFadeIn {
+    
     if (self.emptyDataSetDelegate && [self.emptyDataSetDelegate respondsToSelector:@selector(emptyDataSetShouldFadeIn:)]) {
         return [self.emptyDataSetDelegate emptyDataSetShouldFadeIn:self];
     }
     return YES;
+}
+
+- (BOOL)dzn_shouldAnchorToSafeArea {
+    
+    if (self.emptyDataSetDelegate && [self.emptyDataSetDelegate respondsToSelector:@selector(emptyDataSetShouldAnchorToSafeArea:)]) {
+        return [self.emptyDataSetDelegate emptyDataSetShouldAnchorToSafeArea:self];
+    }
+    
+    return NO;
 }
 
 - (BOOL)dzn_shouldDisplay
@@ -530,7 +549,8 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
         // Configure empty dataset userInteraction permission
         view.userInteractionEnabled = [self dzn_isTouchAllowed];
         
-        [view setupConstraints];
+        BOOL anchorToSafeArea = [self dzn_shouldAnchorToSafeArea];
+        [view setupConstraintsAnchoringToSafeArea:anchorToSafeArea];
         
         [UIView performWithoutAnimation:^{
             [view layoutIfNeeded];
@@ -917,9 +937,11 @@ Class dzn_baseClassToSwizzleForTarget(id target)
 
 #pragma mark - Auto-Layout Configuration
 
-- (void)setupConstraints
-{
-    // First, configure the content view constaints
+- (void)setupConstraintsAnchoringToSafeArea:(BOOL)anchorToSafeArea {
+
+    BOOL showDebugBackgrounds = NO;
+    
+    // First, configure the content view constraints
     // The content view must alway be centered to its superview
     NSLayoutConstraint *centerXConstraint = [self equallyRelatedConstraintWithView:self.contentView attribute:NSLayoutAttributeCenterX];
     NSLayoutConstraint *centerYConstraint = [self equallyRelatedConstraintWithView:self.contentView attribute:NSLayoutAttributeCenterY];
@@ -940,12 +962,12 @@ Class dzn_baseClassToSwizzleForTarget(id target)
     if (_customView) {
 
         // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[customView]|" options:0 metrics:nil views:@{@"customView":_customView}]];
-        [self addConstraint:[_customView.leadingAnchor constraintEqualToAnchor:_customView.superview.safeAreaLayoutGuide.leadingAnchor]];
-        [self addConstraint:[_customView.trailingAnchor constraintEqualToAnchor:_customView.superview.safeAreaLayoutGuide.trailingAnchor]];
+        [self addConstraint:[_customView.leadingAnchor constraintEqualToAnchor:[_customView.superview leadingAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
+        [self addConstraint:[_customView.trailingAnchor constraintEqualToAnchor:[_customView.superview trailingAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
         
         // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[customView]|" options:0 metrics:nil views:@{@"customView":_customView}]];
-        [self addConstraint:[_customView.topAnchor constraintEqualToAnchor:_customView.superview.safeAreaLayoutGuide.topAnchor]];
-        [self addConstraint:[_customView.bottomAnchor constraintEqualToAnchor:_customView.superview.safeAreaLayoutGuide.bottomAnchor]];
+        [self addConstraint:[_customView.topAnchor constraintEqualToAnchor:[_customView.superview topAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
+        [self addConstraint:[_customView.bottomAnchor constraintEqualToAnchor:[_customView.superview bottomAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
     }
     else {
         CGFloat width = CGRectGetWidth(self.frame) ? : CGRectGetWidth([UIScreen mainScreen].bounds);
@@ -962,7 +984,7 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             views[[subviewStrings lastObject]] = _imageView;
             
             // Older visual format: [self.contentView addConstraint:[self.contentView equallyRelatedConstraintWithView:_imageView attribute:NSLayoutAttributeCenterX]];
-            [self.contentView addConstraint:[_imageView.centerXAnchor constraintEqualToAnchor:_imageView.superview.safeAreaLayoutGuide.centerXAnchor]];
+            [self.contentView addConstraint:[_imageView.centerXAnchor constraintEqualToAnchor:[_imageView.superview centerXAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
         }
         
         // Assign the title label's horizontal constraints
@@ -972,12 +994,14 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             views[[subviewStrings lastObject]] = _titleLabel;
             
             // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(padding@750)-[titleLabel(>=0)]-(padding@750)-|" options:0 metrics:metrics views:views]];
-            [self.contentView addConstraint:[_titleLabel.centerXAnchor constraintEqualToAnchor:_titleLabel.superview.safeAreaLayoutGuide.centerXAnchor]];
+            [self.contentView addConstraint:[_titleLabel.centerXAnchor constraintEqualToAnchor:[_titleLabel.superview centerXAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
             [self.contentView addConstraint:[_titleLabel.widthAnchor constraintGreaterThanOrEqualToConstant:0]];
-            NSLayoutConstraint *leftPadding = [_titleLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:_titleLabel.superview.safeAreaLayoutGuide.leadingAnchor constant:padding];
+            NSLayoutConstraint *leftPadding;
+            leftPadding = [_titleLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:[_titleLabel.superview leadingAnchorWhenConsideringSafeArea:anchorToSafeArea] constant:padding];
             [leftPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:leftPadding];
-            NSLayoutConstraint *rightPadding = [_titleLabel.trailingAnchor constraintLessThanOrEqualToAnchor:_titleLabel.superview.safeAreaLayoutGuide.trailingAnchor constant:-padding];
+            NSLayoutConstraint *rightPadding;
+            rightPadding = [_titleLabel.trailingAnchor constraintLessThanOrEqualToAnchor:[_titleLabel.superview trailingAnchorWhenConsideringSafeArea:anchorToSafeArea] constant:-padding];
             [rightPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:rightPadding];
             
@@ -995,12 +1019,12 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             views[[subviewStrings lastObject]] = _detailLabel;
             
             // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(padding@750)-[detailLabel(>=0)]-(padding@750)-|" options:0 metrics:metrics views:views]];
-            [self.contentView addConstraint:[_detailLabel.centerXAnchor constraintEqualToAnchor:_detailLabel.superview.safeAreaLayoutGuide.centerXAnchor]];
+            [self.contentView addConstraint:[_detailLabel.centerXAnchor constraintEqualToAnchor:[_detailLabel.superview centerXAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
             [self.contentView addConstraint:[_detailLabel.widthAnchor constraintGreaterThanOrEqualToConstant:0]];
-            NSLayoutConstraint *leftPadding = [_detailLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:_detailLabel.superview.safeAreaLayoutGuide.leadingAnchor constant:padding];
+            NSLayoutConstraint *leftPadding = [_detailLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:[_detailLabel.superview leadingAnchorWhenConsideringSafeArea:anchorToSafeArea] constant:padding];
             [leftPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:leftPadding];
-            NSLayoutConstraint *rightPadding = [_detailLabel.trailingAnchor constraintLessThanOrEqualToAnchor:_detailLabel.superview.safeAreaLayoutGuide.trailingAnchor constant:-padding];
+            NSLayoutConstraint *rightPadding = [_detailLabel.trailingAnchor constraintLessThanOrEqualToAnchor:[_detailLabel.superview trailingAnchorWhenConsideringSafeArea:anchorToSafeArea] constant:-padding];
             [rightPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:rightPadding];
             
@@ -1018,12 +1042,12 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             views[[subviewStrings lastObject]] = _button;
             
             // Older visual format: [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(padding@750)-[button(>=0)]-(padding@750)-|" options:0 metrics:metrics views:views]];
-            [self.contentView addConstraint:[_button.centerXAnchor constraintEqualToAnchor:_button.superview.safeAreaLayoutGuide.centerXAnchor]];
+            [self.contentView addConstraint:[_button.centerXAnchor constraintEqualToAnchor:[_button.superview centerXAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
             [self.contentView addConstraint:[_button.widthAnchor constraintGreaterThanOrEqualToConstant:0]];
-            NSLayoutConstraint *leftPadding = [_button.leadingAnchor constraintGreaterThanOrEqualToAnchor:_button.superview.safeAreaLayoutGuide.leadingAnchor constant:padding];
+            NSLayoutConstraint *leftPadding = [_button.leadingAnchor constraintGreaterThanOrEqualToAnchor:[_button.superview leadingAnchorWhenConsideringSafeArea:anchorToSafeArea] constant:padding];
             [leftPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:leftPadding];
-            NSLayoutConstraint *rightPadding = [_button.trailingAnchor constraintLessThanOrEqualToAnchor:_button.superview.safeAreaLayoutGuide.trailingAnchor constant:-padding];
+            NSLayoutConstraint *rightPadding = [_button.trailingAnchor constraintLessThanOrEqualToAnchor:[_button.superview trailingAnchorWhenConsideringSafeArea:anchorToSafeArea] constant:-padding];
             [rightPadding setPriority:UILayoutPriorityDefaultHigh];
             [self.contentView addConstraint:rightPadding];
             
@@ -1032,6 +1056,10 @@ Class dzn_baseClassToSwizzleForTarget(id target)
         else {
             [_button removeFromSuperview];
             _button = nil;
+        }
+        
+        if (showDebugBackgrounds) {
+            [_contentView setBackgroundColor:[UIColor whiteColor]];
         }
         
         // Constrain the relevant views vertically on top of each other with margin between.
@@ -1048,11 +1076,15 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             if (i == 0) {
                 topSpacerView = [UIView new];
                 topSpacerView.hidden = YES;
+                if (showDebugBackgrounds) {
+                    [topSpacerView setBackgroundColor:[UIColor blueColor]];
+                    topSpacerView.hidden = NO;
+                }
                 [self.contentView addSubview:topSpacerView];
                 topSpacerView.translatesAutoresizingMaskIntoConstraints = NO;
-                [self.contentView addConstraint:[topSpacerView.topAnchor constraintEqualToAnchor:topSpacerView.superview.safeAreaLayoutGuide.topAnchor]];
-                [self.contentView addConstraint:[topSpacerView.centerXAnchor constraintEqualToAnchor:topSpacerView.superview.safeAreaLayoutGuide.centerXAnchor]];
-                [self.contentView addConstraint:[topSpacerView.widthAnchor constraintEqualToAnchor:topSpacerView.superview.safeAreaLayoutGuide.widthAnchor]];
+                [self.contentView addConstraint:[topSpacerView.topAnchor constraintEqualToAnchor:[topSpacerView.superview topAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
+                [self.contentView addConstraint:[topSpacerView.centerXAnchor constraintEqualToAnchor:[topSpacerView.superview centerXAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
+                [self.contentView addConstraint:[topSpacerView.widthAnchor constraintEqualToAnchor:[topSpacerView.superview widthAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
                 NSLayoutConstraint *spacerHeight = [topSpacerView.heightAnchor constraintGreaterThanOrEqualToConstant:padding];
                 [spacerHeight setPriority:UILayoutPriorityDefaultLow];
                 [self.contentView addConstraint:spacerHeight];
@@ -1068,14 +1100,19 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             
             // Create bottom spacer view and constrain last subview to it
             if (i == subviewStrings.count-1) {
-  
+                // And then decide that there may be a few more to remove from the list. Are there? Reduce the offsets.
+                // And then move onto Onboarding. 
                 bottomSpacerView = [UIView new];
                 bottomSpacerView.hidden = YES;
+                if (showDebugBackgrounds) {
+                    [bottomSpacerView setBackgroundColor:[UIColor greenColor]];
+                    bottomSpacerView.hidden = NO;
+                }
                 [self.contentView addSubview:bottomSpacerView];
                 bottomSpacerView.translatesAutoresizingMaskIntoConstraints = NO;
-                [self.contentView addConstraint:[bottomSpacerView.bottomAnchor constraintEqualToAnchor:bottomSpacerView.superview.safeAreaLayoutGuide.bottomAnchor]];
-                [self.contentView addConstraint:[bottomSpacerView.centerXAnchor constraintEqualToAnchor:bottomSpacerView.superview.safeAreaLayoutGuide.centerXAnchor]];
-                [self.contentView addConstraint:[bottomSpacerView.widthAnchor constraintEqualToAnchor:bottomSpacerView.superview.safeAreaLayoutGuide.widthAnchor]];
+                [self.contentView addConstraint:[bottomSpacerView.bottomAnchor constraintEqualToAnchor:[bottomSpacerView.superview bottomAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
+                [self.contentView addConstraint:[bottomSpacerView.centerXAnchor constraintEqualToAnchor:[bottomSpacerView.superview centerXAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
+                [self.contentView addConstraint:[bottomSpacerView.widthAnchor constraintEqualToAnchor:[bottomSpacerView.superview widthAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
                 NSLayoutConstraint *spacerHeight = [bottomSpacerView.heightAnchor constraintGreaterThanOrEqualToConstant:padding];
                 [spacerHeight setPriority:UILayoutPriorityDefaultLow];
                 [self.contentView addConstraint:spacerHeight];
@@ -1125,6 +1162,70 @@ Class dzn_baseClassToSwizzleForTarget(id target)
                                         attribute:attribute
                                        multiplier:1.0
                                          constant:0.0];
+}
+
+- (NSLayoutAnchor *)topAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea {
+  if (considerSafeArea) {
+        return self.safeAreaLayoutGuide.topAnchor;
+    } else {
+        return self.topAnchor;
+    }
+}
+
+- (NSLayoutAnchor *)bottomAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea {
+  if (considerSafeArea) {
+        return self.safeAreaLayoutGuide.bottomAnchor;
+    } else {
+        return self.bottomAnchor;
+    }
+}
+
+- (NSLayoutAnchor *)leadingAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea {
+  if (considerSafeArea) {
+        return self.safeAreaLayoutGuide.leadingAnchor;
+    } else {
+        return self.leadingAnchor;
+    }
+}
+
+- (NSLayoutAnchor *)trailingAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea {
+  if (considerSafeArea) {
+        return self.safeAreaLayoutGuide.trailingAnchor;
+    } else {
+        return self.trailingAnchor;
+    }
+}
+
+- (NSLayoutAnchor *)centerXAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea {
+    if (considerSafeArea) {
+        return self.safeAreaLayoutGuide.centerXAnchor;
+    } else {
+        return self.centerXAnchor;
+    }
+}
+
+- (NSLayoutAnchor *)centerYAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea {
+    if (considerSafeArea) {
+        return self.safeAreaLayoutGuide.centerYAnchor;
+    } else {
+        return self.centerYAnchor;
+    }
+}
+
+- (NSLayoutAnchor *)widthAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea {
+    if (considerSafeArea) {
+        return self.safeAreaLayoutGuide.widthAnchor;
+    } else {
+        return self.widthAnchor;
+    }
+}
+
+- (NSLayoutAnchor *)heightAnchorWhenConsideringSafeArea:(BOOL)considerSafeArea {
+    if (considerSafeArea) {
+        return self.safeAreaLayoutGuide.heightAnchor;
+    } else {
+        return self.heightAnchor;
+    }
 }
 
 @end
