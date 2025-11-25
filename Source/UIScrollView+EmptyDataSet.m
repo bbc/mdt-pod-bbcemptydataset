@@ -939,8 +939,6 @@ Class dzn_baseClassToSwizzleForTarget(id target)
 
 - (void)setupConstraintsAnchoringToSafeArea:(BOOL)anchorToSafeArea {
 
-    BOOL showDebugBackgrounds = NO;
-    
     // First, configure the content view constraints
     // The content view must alway be centered to its superview
     NSLayoutConstraint *centerXConstraint = [self equallyRelatedConstraintWithView:self.contentView attribute:NSLayoutAttributeCenterX];
@@ -1058,10 +1056,6 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             _button = nil;
         }
         
-        if (showDebugBackgrounds) {
-            [_contentView setBackgroundColor:[UIColor whiteColor]];
-        }
-        
         // Constrain the relevant views vertically on top of each other with margin between.
         // Centre the whole lot with top and bottom spacers.
         UIView *previousSubview = nil;
@@ -1076,10 +1070,6 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             if (i == 0) {
                 topSpacerView = [UIView new];
                 topSpacerView.hidden = YES;
-                if (showDebugBackgrounds) {
-                    [topSpacerView setBackgroundColor:[UIColor blueColor]];
-                    topSpacerView.hidden = NO;
-                }
                 [self.contentView addSubview:topSpacerView];
                 topSpacerView.translatesAutoresizingMaskIntoConstraints = NO;
                 [self.contentView addConstraint:[topSpacerView.topAnchor constraintEqualToAnchor:[topSpacerView.superview topAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
@@ -1104,10 +1094,6 @@ Class dzn_baseClassToSwizzleForTarget(id target)
                 // And then move onto Onboarding. 
                 bottomSpacerView = [UIView new];
                 bottomSpacerView.hidden = YES;
-                if (showDebugBackgrounds) {
-                    [bottomSpacerView setBackgroundColor:[UIColor greenColor]];
-                    bottomSpacerView.hidden = NO;
-                }
                 [self.contentView addSubview:bottomSpacerView];
                 bottomSpacerView.translatesAutoresizingMaskIntoConstraints = NO;
                 [self.contentView addConstraint:[bottomSpacerView.bottomAnchor constraintEqualToAnchor:[bottomSpacerView.superview bottomAnchorWhenConsideringSafeArea:anchorToSafeArea]]];
