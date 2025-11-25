@@ -1090,8 +1090,6 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             
             // Create bottom spacer view and constrain last subview to it
             if (i == subviewStrings.count-1) {
-                // And then decide that there may be a few more to remove from the list. Are there? Reduce the offsets.
-                // And then move onto Onboarding. 
                 bottomSpacerView = [UIView new];
                 bottomSpacerView.hidden = YES;
                 [self.contentView addSubview:bottomSpacerView];
