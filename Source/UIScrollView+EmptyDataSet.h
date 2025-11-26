@@ -192,6 +192,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)emptyDataSetShouldDisplay:(UIScrollView *)scrollView;
 
 /**
+ Asks the delegate if the empty dataset should be anchored to the safe area rather than fully to the edges. Default is NO.
+ 
+ @param scrollView A scrollView subclass object informing the delegate.
+ @return YES if the empty dataset should anchor to safe area. Useful in iOS 26 iPad layouts.
+ */
+- (BOOL)emptyDataSetShouldAnchorToSafeArea:(UIScrollView *)scrollView;
+
+/**
  Asks the delegate for touch permission. Default is YES.
  
  @param scrollView A scrollView subclass object informing the delegate.

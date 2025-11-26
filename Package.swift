@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "DZNEmptyDataSet",
     platforms: [
-        .iOS(.v9),
-        .tvOS(.v9)
+        .iOS(.v12),
+        .tvOS(.v12)
     ],
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
